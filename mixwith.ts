@@ -267,7 +267,19 @@ class MixinBuilder<Base extends Constructable> {
     const c_m = c ? Mixin(c) : undefined;
     const d_m = d ? Mixin(d) : undefined;
 
-    //if (this.superclass) {
+    
+    HasInstance(a);
+    
+    if (b_m) {
+      HasInstance(b);
+    }
+    if (c_m) {
+      HasInstance(c);
+    }
+    if (d_m) {
+      HasInstance(d);
+    }
+
     if (a_m && b_m && c_m && d_m) {
       return d_m(c_m(b_m(a_m(this.superclass)))) as Base & A & B & C & D
     }
@@ -278,9 +290,8 @@ class MixinBuilder<Base extends Constructable> {
       return b_m(a_m(this.superclass)) as Base & A & B & C & D
     }
     else {
-      HasInstance(a);
       return a_m(this.superclass) as Base & A & B & C & D
     }
-    // }
+
   }
 }

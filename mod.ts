@@ -1,7 +1,4 @@
-const { test } = Deno;
-
-test({
-  name: "public API assertions",
-  fn() {
-  },
-});
+import {mix} from './mixwith.ts'
+import { Constructable } from './types.d.ts';
+export {mix} 
+export type {Constructable};
