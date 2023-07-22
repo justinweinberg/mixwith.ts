@@ -6,21 +6,7 @@ import { Constructable, mixin } from "./types.d.ts";
 
 // used by apply() and isApplicationOf()
 const _appliedMixin = '__mixwith_appliedMixin';
-
-/**
- * A function that returns a subclass of its argument.
- *
- * @example
- * const M = (superclass) => class extends superclass {
- *   getMessage() {
- *     return "Hello";
- *   }
- * }
- *
- * @typedef {Function} MixinFunction
- * @param {Function} superclass
- * @return {Function} A subclass of `superclass`
- */
+ 
 
 /**
  * Applies `mixin` to `superclass`.
@@ -28,25 +14,18 @@ const _appliedMixin = '__mixwith_appliedMixin';
  * `apply` stores a reference from the mixin application to the unwrapped mixin
  * to make `isApplicationOf` and `hasMixin` work.
  *
- * This function is usefull for mixin wrappers that want to automatically enable
+ * This function is useful for mixin wrappers that want to automatically enable
  * {@link hasMixin} support.
  *
- * @example
- * const Applier = (mixin) => wrap(mixin, (superclass) => apply(superclass, mixin));
- *
- * // M now works with `hasMixin` and `isApplicationOf`
- * const M = Applier((superclass) => class extends superclass {});
- *
- * class C extends M(Object) {}
- * let i = new C();
- * hasMixin(i, M); // true
- *
- * @function
- * @param {Constructable} superclass A class or constructor function
- * @param {MixinFunction} mixin The mixin to apply
- * @return {Function} A subclass of `superclass` produced by `mixin`
+ * @template C - The constructor type of the superclass.
+ * @template T - The type of the mixin.
+ * 
+ * @param {C} superclass - The superclass to which the mixin will be applied.
+ * @param {mixin<C, T>} mixin - The mixin function that provides additional behavior to the superclass.
+ * 
+ * @returns {T} - A new class with the mixin's behavior applied.
  */
-export const apply = <C extends Constructable, T>(superclass: C, mixin: mixin<C, T>) => {
+export const apply = <C extends Constructable, T>(superclass: C, mixin: mixin<C, T>): T => {
   const application = mixin(superclass);
   (application as any).prototype[_appliedMixin] = unwrap(mixin);
   return application;
@@ -59,19 +38,20 @@ export const apply = <C extends Constructable, T>(superclass: C, mixin: mixin<C,
  * `isApplicationOf` works by checking that `proto` has a reference to `mixin`
  * as created by `apply`.
  *
- * @function
- * @param {Object} proto A prototype object created by {@link apply}.
- * @param {MixinFunction} mixin A mixin function used with {@link apply}.
+ * @template T - The type of the mixin.
+ * @param {any} proto A prototype object created by {@link apply}.
+ * @param {T} mixin A mixin function used with {@link apply}.
  * @return {boolean} whether `proto` is a prototype created by the application of
  * `mixin` to a superclass
  */
-export const isApplicationOf = <T>(proto: any, mixin: T) =>
-  Object.hasOwn(proto, _appliedMixin) && (proto as any)[_appliedMixin] === unwrap(mixin);
+export const isApplicationOf = <T>(proto: unknown, mixin: T) =>
+  Object.hasOwn(proto as Record<string, unknown>, _appliedMixin) && (proto as any)[_appliedMixin] === unwrap(mixin);
 
 /**
  * Returns `true` iff `o` has an application of `mixin` on its prototype
  * chain.
  *
+ * @template T - The type of the mixin.
  * @function
  * @param {Object} o An object
  * @param {MixinFunction} mixin A mixin applied with {@link apply}

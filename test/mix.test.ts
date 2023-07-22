@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { BareMixin, DeDupe, HasInstance, apply, hasMixin, isApplicationOf, mix, unwrap, wrap } from "../mixwith.ts";
 import { Constructable } from "../types.d.ts";
-import * as mod from "https://deno.land/std/testing/asserts.ts";
+import * as mod from "https://deno.land/std@0.195.0/testing/asserts.ts";
 
 /* 'apply() and isApplicationOf()' */
 
@@ -235,3 +235,5 @@ Deno.test('mix() can omit the superclass', () => {
   mod.assertEquals(42, C.staticMixinMethod());
   mod.assertEquals(7, C.staticClassMethod());
 });
+
+

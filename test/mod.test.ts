@@ -1,6 +1,7 @@
 // deno-lint-ignore-file no-explicit-any no-unused-vars
 import { mix, Constructable } from "../mod.ts";
-import * as mod from "https://deno.land/std/testing/asserts.ts";
+import * as mod from "https://deno.land/std@0.195.0/testing/asserts.ts";
+import { mixin } from "../types.d.ts";
 
 class Base {
     myArg = ""
@@ -51,13 +52,21 @@ const Mix2 = <c extends Constructable<Base>>(s: c) => class Mix2 extends s {
 
 const Mix3 = <c extends Constructable>(s: c) => class Mix2 extends s {
     // mixin methods here
-    constructor(...args: any[]) {
-        super(...args);
+
+    mix3Arg = ""
+    constructor(...arg: any[]) {
+        super(...arg);
+        this.mix3Arg = arg[0];
     }
+
     m3() { }
     replaceMe() {
         return "not so fast!";
     }
+    gotConstructorArg() {
+        return `constructor arg from Mix3 ${this.mix3Arg}`
+    }
+
 };
 
 const Mix4 = <c extends Constructable>(s: c) => class Mix2 extends s {
@@ -69,15 +78,36 @@ const Mix4 = <c extends Constructable>(s: c) => class Mix2 extends s {
 
 };
 
+const MixNoConstructor = <c extends Constructable>(s: c) => class Mix2 extends s {
+};
+
 class mixed extends mix(Base).with(Mix1, Mix2, Mix3, Mix4) {
     // class methods here
     constructor(...args: any[]) {
         super(...args);
     }
-     
+
     mixedMethod() {
     }
 }
+
+class mixedNoConstruct extends mix(Base).with(MixNoConstructor) {
+    constructor(...args: any[]) {
+        super(...args);
+    }
+}
+
+Deno.test("can call super on base even if Mixin doesn't have a constructor", () => {
+    const sut = new mixedNoConstruct('my arg');
+    mod.assertEquals(sut.myConstructorArg(), "my arg");
+});
+
+Deno.test("constructor args flow to all MixIn participants", () => {
+    const sut = new mixed("my arg");
+    mod.assertEquals(sut.myConstructorArg(), "my arg");
+    mod.assertEquals(sut.gotConstructorArg(), `constructor arg from Mix3 my arg`)
+});
+
 
 Deno.test("instanceOf works", () => {
     const sut = new mixed();
@@ -89,22 +119,23 @@ Deno.test("instanceOf works", () => {
 
 });
 
-Deno.test("constructor args flows to base class", () => {
-    const sut = new mixed("my constructor arg");
-    mod.assertEquals(sut.myConstructorArg(), "my constructor arg");
-});
-
-Deno.test("the right most mixin overrides a method on a mixin to the left", () => {
+Deno.test("a mixin to the right overrides a method on a mixin to the left", () => {
     const sut = new mixed();
     mod.assertEquals(sut.replaceMe(), "not so fast!");
 });
 
-Deno.test("can call method on base", () => {
+Deno.test("an implementor can call a method on the Base class", () => {
     const sut = new mixed();
     mod.assertEquals(sut.b(123), `base method with a value of 123`);
 });
 
-Deno.test("mixin can call method on super", () => {
-    const sut = new mixed("my constructor arg");
-    mod.assertEquals(sut.m2(), "not so fast!");
+Deno.test("an implementor can call a method of a Mixin class", () => {
+    const sut = new mixed();
+    mod.assertEquals(sut.m1(), `m1`);
 });
+
+Deno.test("a mixin can call a method on the super class", () => {
+    const sut = new mixed("my constructor arg");
+    mod.assertEquals(sut.m2(), "base called with: m2");
+});
+
