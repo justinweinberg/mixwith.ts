@@ -178,6 +178,9 @@ export function DeDupe<C extends Constructable, T>(mixin: mixin<C, T>) {
   return wrap(mixin, dupeWrapper as mixin<C, T>);
 }
 
+// used by HasInstance()
+const _instancedMixin = '__mixwith_instanceOf'
+
 /**
  * Adds [Symbol.hasInstance] (ES2015 custom instanceof support) to `mixin`.
  *
@@ -186,12 +189,14 @@ export function DeDupe<C extends Constructable, T>(mixin: mixin<C, T>) {
  * @return {MixinFunction} the given mixin function
  */
 export const HasInstance = <T>(mixin: T) => {
-  if (Symbol && Symbol.hasInstance && !(mixin as any)[Symbol.hasInstance]) {
-    Object.defineProperty(mixin, Symbol.hasInstance, {
-      value(o: Record<string, unknown>) {
-        return hasMixin(o, mixin);
-      },
-    });
+  if (!(mixin as any)[_instancedMixin]) {
+    (mixin as any)[_instancedMixin] = true;
+    Object.defineProperty(mixin, Symbol.hasInstance,
+      {
+        value(o: unknown) {
+          return hasMixin(o, mixin);
+        },
+      });
   }
   return mixin;
 };
@@ -267,9 +272,9 @@ class MixinBuilder<Base extends Constructable> {
     const c_m = c ? Mixin(c) : undefined;
     const d_m = d ? Mixin(d) : undefined;
 
-    
+
     HasInstance(a);
-    
+
     if (b_m) {
       HasInstance(b);
     }
