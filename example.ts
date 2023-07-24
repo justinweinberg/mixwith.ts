@@ -16,17 +16,17 @@ class GroundForce implements Position {
     yPos = 0;
 }
 
-const bomber = (s : Constructable) => class extends s {
+const bomber = <c extends Constructable>(s : c) => class extends s {
     bomb() { }
 }
 
-const shooter = (s : Constructable)=> class extends s {
+const shooter = <c extends Constructable>(s : c)=> class extends s {
     shoot() { }
 }
 
 //Notice that this takes a 'Position' type since 
 //it needs to refer back to its super class (which implements Position)
-const spawner =(s : Constructable<Position>) => class extends s {
+const spawner = <c extends Constructable<Position>>(s : c) => class extends s {
     spawn() {
         //spawn logic for things that spawn
         this.yPos = Math.random() * 100;

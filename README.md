@@ -121,6 +121,7 @@ class MyClass extends mix(MySuperClass).with(MyMixin) {
 In this example, I modeled a 2D war game and took an object oriented approach. I wanted to keep the object hierarchy light, but had common *adjectives* across units (shooters, spawners, etc.).  This is a good use case for mixins.
 
 ```typescript
+// deno-lint-ignore-file no-unused-vars
 import { Constructable, mix } from "./mod.ts";
 
 interface Position {
@@ -138,16 +139,17 @@ class GroundForce implements Position {
     yPos = 0;
 }
 
-const bomber = (s : Constructable) => class extends s {
+const bomber = <c extends Constructable>(s : c) => class extends s {
     bomb() { }
 }
 
-const shooter = (s : Constructable)=> class extends s {
+const shooter = <c extends Constructable>(s : c)=> class extends s {
     shoot() { }
 }
 
-//'Position' explicit because this mixin needs the super class
-const spawner =(s : Constructable<Position>) => class extends s {
+//Notice that this takes a 'Position' type since 
+//it needs to refer back to its super class (which implements Position)
+const spawner = <c extends Constructable<Position>>(s : c) => class extends s {
     spawn() {
         //spawn logic for things that spawn
         this.yPos = Math.random() * 100;
@@ -165,12 +167,16 @@ class Tank extends mix(GroundForce).with(spawner, shooter) { }
 class fortification extends mix(GroundForce).with(shooter) { }
 
 // You can also skip the final class definition, but intent is less clear
-let jetFighter = new (mix(AirForce).with(spawner, shooter))
+const myJetFighter = new (mix(AirForce).with(spawner, shooter))
+
 ```
 
-# Recommended Usage
+## Recommended Usage
 
-I recommend exclusively use the `mix` utility builder and it's supporting `with` method.  The `mix` and `with` combination apply all of the library's goodness (caching, deduplication, instanceOf behavior).
+
+1. Use the `mix` utility builder and it's supporting `with` method.  The `mix` and `with` combination apply all of the library's goodness (caching, deduplication, instanceOf behavior).
+
+2. Define mixins using  `<c extends Constructable>(s : c)>` instead of `(s : Constructable)`. The latter will complain if used in a mixin before referencing a  `Constructable<MyInterface>` 
 
 
 # Full API Documentation

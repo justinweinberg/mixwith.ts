@@ -42,6 +42,9 @@ const Mix2 = <c extends Constructable<Base>>(s: c) => class Mix2 extends s {
         super(...args);
     }
     m2() {
+        return "m2";
+    }
+    m2super() {
         return super.c("m2");
     }
     replaceMe() {
@@ -59,7 +62,9 @@ const Mix3 = <c extends Constructable>(s: c) => class Mix2 extends s {
         this.mix3Arg = arg[0];
     }
 
-    m3() { }
+    m3() {
+        return "m3";
+     }
     replaceMe() {
         return "not so fast!";
     }
@@ -74,14 +79,38 @@ const Mix4 = <c extends Constructable>(s: c) => class Mix2 extends s {
     constructor(...args: any[]) {
         super(...args);
     }
-    m3() { }
+    m4() {
+        return "m4";
+     }
+
+};
+
+const Mix5 = <c extends Constructable>(s: c) => class Mix2 extends s {
+    // mixin methods here
+    constructor(...args: any[]) {
+        super(...args);
+    }
+    m5() {
+        return "m5";
+     }
+
+};
+
+const Mix6 = <c extends Constructable>(s: c) => class Mix2 extends s {
+    // mixin methods here
+    constructor(...args: any[]) {
+        super(...args);
+    }
+    m6() {
+        return "m6";
+     }
 
 };
 
 const MixNoConstructor = <c extends Constructable>(s: c) => class Mix2 extends s {
 };
 
-class mixed extends mix(Base).with(Mix1, Mix2, Mix3, Mix4) {
+class mixed extends mix(Base).with(Mix1, Mix2, Mix3, Mix4, Mix5, Mix6) {
     // class methods here
     constructor(...args: any[]) {
         super(...args);
@@ -100,6 +129,7 @@ class mixedNoConstruct extends mix(Base).with(MixNoConstructor) {
 Deno.test("can call super on base even if Mixin doesn't have a constructor", () => {
     const sut = new mixedNoConstruct('my arg');
     mod.assertEquals(sut.myConstructorArg(), "my arg");
+
 });
 
 Deno.test("constructor args flow to all MixIn participants", () => {
@@ -136,6 +166,15 @@ Deno.test("an implementor can call a method of a Mixin class", () => {
 
 Deno.test("a mixin can call a method on the super class", () => {
     const sut = new mixed("my constructor arg");
-    mod.assertEquals(sut.m2(), "base called with: m2");
+    mod.assertEquals(sut.m2super(), "base called with: m2");
 });
 
+Deno.test("can access all mixin members", () => {
+    const sut = new mixed("my constructor arg");
+    mod.assertEquals(sut.m1(), "m1");
+    mod.assertEquals(sut.m2(), "m2");
+    mod.assertEquals(sut.m3(), "m3");
+    mod.assertEquals(sut.m4(), "m4");
+    mod.assertEquals(sut.m5(), "m5");
+    mod.assertEquals(sut.m6(), "m6");
+});
