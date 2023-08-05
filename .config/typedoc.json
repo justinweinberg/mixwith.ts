@@ -1,0 +1,15 @@
+{
+    // Comments are supported, like tsconfig.json
+    "entryPoints": ["mod.ts", "miwith.ts"],
+    "out": "docs",
+    "plugin": ["typedoc-plugin-markdown"],
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    "skipErrorChecking":  true,
+    "hideGenerator":  true,
+    "readme":  "none",
+    "includeVersion":  false,
+    "hideInPageTOC":  true,
+    "hideBreadcrumbs":  true,
+
+}
+

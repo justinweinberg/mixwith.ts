@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import { BareMixin, DeDupe, HasInstance, apply, hasMixin, isApplicationOf, mix, unwrap, wrap } from "../mixwith.ts";
-import { Constructable } from "../types.d.ts";
+import type { Constructable } from "../types.d.ts";
 import * as mod from "https://deno.land/std@0.195.0/testing/asserts.ts";
 
 /* 'apply() and isApplicationOf()' */
