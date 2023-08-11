@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-unused-vars
-import type { Constructable } from "./mod.ts";
-import {mix } from "./mod.ts";
+import type { Constructable } from "../mod.ts";
+import {mix } from "../mod.ts";
 
 interface Position {
     xPos: number;
