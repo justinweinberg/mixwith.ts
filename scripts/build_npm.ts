@@ -7,6 +7,7 @@ await build({
   entryPoints: ["./mod.ts"],
   outDir: "./npm",
   test: false,
+  scriptModule: false,
   shims: {
     // see JS docs for overview and more options
     deno: false,
