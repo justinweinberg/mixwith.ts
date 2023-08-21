@@ -9,8 +9,8 @@ import {
   mix,
   unwrap,
   wrap,
-} from "../mixwith.ts";
-import type { Constructable } from "../types.d.ts";
+} from "../mod.ts";
+import type { Constructable } from "../mod.ts";
 import * as mod from "https://deno.land/std@0.195.0/testing/asserts.ts";
 
 /* 'apply() and isApplicationOf()' */
