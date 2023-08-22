@@ -1,4 +1,4 @@
-// ex. scripts/build_npm.ts
+// ex. scripts/build_npm.ts.  Current version is 1.1.01
 import { build, emptyDir } from "https://deno.land/x/dnt/mod.ts";
 
 await emptyDir("./npm");
