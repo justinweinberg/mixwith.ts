@@ -1,8 +1,8 @@
 # mixwith.ts
 
-A fork of Justin Fagnani's excellent mixwith.js to add TypeScript compatibility and design time completions.
+A TypeScript fork of Justin Fagnani's excellent mixwith.js library that  supports TypeScript type completions at design time.
 
-`mixwith` differs from other mixin approaches because it does not copy properties from one object to another. Instead, `mixwith` works with "subclass factories" which create a new class that extends a superclass with the mixin - this is called a _mixin_ _application_.
+`mixwith` differs from other mixin approaches because it does not copy properties from one object to another. Instead, `mixwith` works with "subclass factories" which create a new class that extends a superclass with the mixin.
 
 my-mixin.ts:
 
@@ -19,101 +19,66 @@ class MyClass extends mix(MySuperClass).with(MyMixin) {
      // class methods here, go ahead, use super!
 }
 ```
+# Installation 
 
-
-### Changes from mixwith.js
-
-#### API & Functional changes
-
-The builder `MixinBuilder` and its supporting method `mix()` were modified:
-
-
-- `MixinBuilder.with()` accepts **up to six mixins** rather than an array. This change was made to enable design time completions.  The source code can be modified if more mixins are needed.
-- `MixinBuilder.with()` applies instanceOf support for mixins automatically
-
-### Types
-
-To resolve Mixins at design time, two types were defined.
-
-```typescript 
-export type Constructable<T = {}> = new (...args: any[]) => T;
-export type mixin<C extends Constructable, T> = (args: C) => T 
+Using npm 
+```
+npm i mixwith.ts
 ```
 
-- `Constructable<T>` defines a constructor function (can be called with new) that creates instances of objects of type `T`. 
-- `mixin` defines a function that takes a `Constructable<T>` and returns a new type `T`.
-
-TypeScript will infer both `T` and `C` implicitly.  However, if you want to refer to a super's properties from a mixin without red squigglies, reference it.
-
-```typescript
-//open ended mixin.  Use to add new functionality to any type
-const openMix = (s: Constructable) => class extends s...
-
-//closed mixin.  Use to apply to a specific interface or class
-const closedMix = (s: Constructable<MyInterface>) => class extends s... 
-
+Using deno
+```
+import {mix, Constructable } from  "https://deno.land/x/mixwithts/mod.ts"
 ```
 
-### mixwith.ts  
-
-The subclass factory pattern does not require a library. This library makes working with the pattern more powerful and easier to use.
-
-  * Determine if an object or class has had a particular mixin applied to it.
-  * Cache mixin applications so that a mixin repeatedly applied to the same superclass reuses its resulting subclass.
-  * De-duplicate mixin application so that including a mixin multiple times in a class hierarchy only applies it once to the prototype type chain.
-  * Add `instanceof` support to mixin functions.  That is, the following test passes
-
-```typescript 
-class MyClass extends mix(MySuperClass).with(MyMixin) {
-    // class methods here, go ahead, use super!
-}
-
-const foo = new MyClass();
-
-assert(foo instanceof MySuperClass); //true
-assert(foo instanceof MyMixin); //true
-```
-
-## Advantages of subclass factories over typical JavaScript mixins
-
-Subclass factory style mixins preserve the object-oriented inheritance properties that classes provide, like method overriding and `super` calls, while letting you compose classes out of mixins without being constrained to a single inheritance hierarchy, and without monkey-patching or copying.
-
-#### Method overriding that just works
-
-Methods in subclasses can naturally override methods in the mixin or superclass, and mixins override methods in the superclass. This means that precedence is preserved - the order is: _subclass_ -> _mixin__1_ -> ... -> _mixin__N_ -> _superclass_.
-
-#### `super` works
-
-Subclasses and mixins can use `super` normally, as defined in standard Javascript, and without needing the mixin library to do special chaining of functions.
-
-#### Mixins can have constructors
-
-Since `super()` works, mixins can define constructors. Combined with ES6 rest arguments and the spread operator, mixins can have generic constructors that work with any super constructor by passing along all arguments.
-
-#### Prototypes and instances are not mutated
-
-Typical JavaScript mixins usually used to either mutate each instance as created, which can be bad for performance and maintainability, or modify a prototype, which means every object inheriting from that prototype gets the mixin. Subclass factories don't mutate objects, they define new classes to subclass, leaving the original superclass intact.
-
-## Usage
- 
-
-### Using Mixins
+# Usage
 
 Classes use mixins in their `extends` clause. Classes that use mixins can define and override constructors and methods as usual.  In conflicts, the **right** most Mixin wins.
 
 ```typescript
-class MyClass extends mix(MySuperClass).with(MyMixin) {
 
-  constructor(a, b) {
-    super(a, b); // calls MyMixin(a, b)
-  }
-
-  foo() {
-    console.log('foo from MyClass');
-    super.foo(); // calls MyMixin.foo()
-  }
-
+class MySuperClass   {
+    // ...
 }
+
+const MyMixin = <c extends Constructable>(s : c) => class extends s {
+    foo() {}
+}
+
+class MyClass extends mix(MySuperClass).with(MyMixin) { 
+    foo() {
+        super.foo() // calls MyMixin.foo()
+    }
+}
+```
+
+### Constructor Usage
+
+To use contructors and make sure the base class constructors are called, mixins consume and pass along constructor arguments using a constructor with `...args: any`.  Mixins can optionally consume constructor arguments as well:
+
+``` typescript
+class MySuperClass {
+    constructor(numArg : number, strArg: string) { 
+    }
+  }
+  
+  const MyMixin = <c extends Constructable>(s: c) =>
+    class Mix1 extends s {
+      constructor(...args: any[]) {
+        super(...args);
+       }
+  
+    };
+  
+  class MixedClass extends mix(MySuperClass).with(MyMixin) {
+    constructor(numArg : number, strArg: string) {
+      super(numArg, strArg);
+     }
+  }
+  
+
+  const myInstance : MixedClass = new MixedClass(42, "hello world");
+  
 ```
 
 ### A Full Example
@@ -171,13 +136,79 @@ const myJetFighter = new (mix(AirForce).with(spawner, shooter))
 
 ```
 
-## Recommended Usage
+
+# Changes from mixwith.js
+
+#### API & Functional changes
+
+The builder `MixinBuilder` and its supporting method `mix()` were modified:
 
 
-1. Use the `mix` utility builder and it's supporting `with` method.  The `mix` and `with` combination apply all of the library's goodness (caching, deduplication, instanceOf behavior).
+- `MixinBuilder.with()` accepts **up to six mixins** rather than an array. This change was made to enable design time TypeScript completions.  The source code can be modified to support more mixins as needed.
+- `MixinBuilder.with()` applies instanceOf support for mixins automatically
 
-2. Define mixins using  `<c extends Constructable>(s : c)>` instead of `(s : Constructable)`. The latter will complain if used in a mixin before referencing a  `Constructable<MyInterface>` 
+### Types
 
+To resolve Mixins at design time, two types were defined.
+
+```typescript 
+export type Constructable<T = {}> = new (...args: any[]) => T;
+export type mixin<C extends Constructable, T> = (args: C) => T 
+```
+
+- `Constructable<T>` defines a constructor function (can be called with new) that creates instances of objects of type `T`. 
+- `mixin` defines a function that takes a `Constructable<T>` and returns a new type `T`.
+
+TypeScript will infer both `T` and `C` implicitly.  However, if you want to refer to a super's properties from a mixin without red squigglies, reference it.
+
+```typescript
+//open ended mixin.  Use to add new functionality to any type
+const openMix = (s: Constructable) => class extends s...
+
+//closed mixin.  Use to apply to a specific interface or class
+const closedMix = (s: Constructable<MyInterface>) => class extends s... 
+
+```
+
+# Why Mixin.ts
+
+The subclass factory pattern does not require a library. This library makes working with the pattern more powerful and easier to use.
+
+  * Determine if an object or class has had a particular mixin applied to it.
+  * Cache mixin applications so that a mixin repeatedly applied to the same superclass reuses its resulting subclass.
+  * De-duplicate mixin application so that including a mixin multiple times in a class hierarchy only applies it once to the prototype type chain.
+  * Add `instanceof` support to mixin functions.  That is, the following test passes
+
+```typescript 
+class MyClass extends mix(MySuperClass).with(MyMixin) {
+    // class methods here, go ahead, use super!
+}
+
+const foo = new MyClass();
+
+assert(foo instanceof MySuperClass); //true
+assert(foo instanceof MyMixin); //true
+```
+
+### Advantages of subclass factories over typical JavaScript mixins
+
+Subclass factory style mixins preserve the object-oriented inheritance properties that classes provide, like method overriding and `super` calls, while letting you compose classes out of mixins without being constrained to a single inheritance hierarchy, and without monkey-patching or copying.
+
+#### Method overriding that just works
+
+Methods in subclasses can naturally override methods in the mixin or superclass, and mixins override methods in the superclass. This means that precedence is preserved - the order is: _subclass_ -> _mixin__1_ -> ... -> _mixin__N_ -> _superclass_.
+
+#### `super` works
+
+Subclasses and mixins can use `super` normally, as defined in standard Javascript, and without needing the mixin library to do special chaining of functions.
+
+#### Mixins can have constructors
+
+Since `super()` works, mixins can define constructors. Combined with ES6 rest arguments and the spread operator, mixins can have generic constructors that work with any super constructor by passing along all arguments.
+
+#### Prototypes and instances are not mutated
+
+Typical JavaScript mixins usually used to either mutate each instance as created, which can be bad for performance and maintainability, or modify a prototype, which means every object inheriting from that prototype gets the mixin. Subclass factories don't mutate objects, they define new classes to subclass, leaving the original superclass intact.
 
 ### References 
 * https://www.typescriptlang.org/docs/handbook/mixins.html
