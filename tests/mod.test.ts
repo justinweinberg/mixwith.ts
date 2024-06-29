@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any no-unused-vars
 import { mix } from "../mod.ts";
-import * as mod from "https://deno.land/std@0.195.0/testing/asserts.ts";
+import * as mod from "https://deno.land/std@0.224.0/testing/asserts.ts";
 import type { Constructable, mixin } from "../mod.ts"
 
 class Base {

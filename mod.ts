@@ -113,44 +113,6 @@ export const unwrap = <T>(wrapper: T): T => {
   return (wrapper as any)[_wrappedMixin] as T || wrapper;
 };
 
-const _cachedApplications = "__mixwith_cachedApplications";
-
-/**
- * Decorates `mixin` so that it caches its applications. When applied multiple
- * times to the same superclass, `mixin` will only create one subclass, memoize
- * it and return it for each application.
- *
- * Note: If `mixin` somehow stores properties its classes constructor (static
- * properties), or on its classes prototype, it will be shared across all
- * applications of `mixin` to a super class. It's reccomended that `mixin` only
- * access instance state.
- *
- * @typeParam C - The type of the constructor of the mixin.
- * @typeParam T - The type of the mixin instance.
- * @param {mixin<C, T>} mixin - The mixin to be cached.
- * @returns {mixin<C, T>} - Returns the cached mixin application.
- */
-export const Cached = <C extends Constructable, T>(mixin: mixin<C, T>) =>
-  wrap(mixin, (superclass) => {
-    // Get or create a symbol used to look up a previous application of mixin
-    // to the class. This symbol is unique per mixin definition, so a class will have N
-    // applicationRefs if it has had N mixins applied to it. A mixin will have
-    // exactly one _cachedApplicationRef used to store its applications.
-
-    let cachedApplications = (superclass as any)[_cachedApplications];
-    if (!cachedApplications) {
-      cachedApplications = (superclass as any)[_cachedApplications] = new Map();
-    }
-
-    let application = cachedApplications.get(mixin);
-    if (!application) {
-      application = mixin(superclass);
-      cachedApplications.set(mixin, application);
-    }
-
-    return application;
-  });
-
 /**
  * Decorates `mixin` so that it only applies if it's not already on the
  * prototype chain.
@@ -217,7 +179,7 @@ export const BareMixin = <C extends Constructable, T>(
  */
 export const Mixin = <C extends Constructable, T>(
   mixin: mixin<C, T>,
-): mixin<C, T> => DeDupe(Cached(BareMixin(HasInstance(mixin))));
+): mixin<C, T> => DeDupe(BareMixin(HasInstance(mixin)));
 /**
  * A fluent interface to apply a list of mixins to a superclass.
  *
